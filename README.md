@@ -21,3 +21,37 @@ This project aims to bridge the gap of music streaming and a thriving community 
 * Express.js backed
 * Tailwind CSS for styling
 * Vite for frontend build
+
+## Project Structure
+```
+audio-uploads/
+
+client/
+├──src/
+|  ├──components/
+|  ├──hooks/
+|  ├──lib/
+|  ├──pages/
+|  ├──types/
+
+dist/
+├──public/
+|  ├──assets/
+
+server/
+
+shared/
+
+.gitignore
+.replit
+drizzle.config.ts
+generated-icon.png
+package.json
+package-lock.json
+postcss.config.js
+README.md
+tailwind.config.ts
+theme.json
+tsconfig.json
+vite.config.ts
+```
