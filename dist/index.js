@@ -7,21 +7,59 @@ import { createServer } from "http";
 // server/storage.ts
 import fs from "fs/promises";
 import path from "path";
-var MemStorage = class {
+import { existsSync } from "fs";
+var FileStorage = class {
   songs;
   currentId;
   uploadsDir;
+  metadataFile;
   constructor() {
     this.songs = /* @__PURE__ */ new Map();
     this.currentId = 1;
     this.uploadsDir = path.resolve(process.cwd(), "audio-uploads");
-    this.initUploadsDir();
+    this.metadataFile = path.join(this.uploadsDir, "songs-metadata.json");
+    this.init();
   }
-  async initUploadsDir() {
+  async init() {
     try {
       await fs.mkdir(this.uploadsDir, { recursive: true });
+      await this.loadSavedMetadata();
     } catch (error) {
-      console.error("Failed to create uploads directory:", error);
+      console.error("Failed to initialize storage:", error);
+    }
+  }
+  async loadSavedMetadata() {
+    try {
+      if (existsSync(this.metadataFile)) {
+        const data = await fs.readFile(this.metadataFile, "utf-8");
+        const { songs: songs2, nextId } = JSON.parse(data);
+        this.songs.clear();
+        for (const song of songs2) {
+          const songPath = song.path;
+          if (existsSync(songPath)) {
+            this.songs.set(song.id, song);
+          }
+        }
+        this.currentId = nextId;
+        console.log(`Loaded ${this.songs.size} songs from saved metadata`);
+      }
+    } catch (error) {
+      console.error("Failed to load saved metadata:", error);
+      this.songs.clear();
+      this.currentId = 1;
+    }
+  }
+  async saveMetadata() {
+    try {
+      const songs2 = Array.from(this.songs.values());
+      const data = {
+        songs: songs2,
+        nextId: this.currentId
+      };
+      await fs.writeFile(this.metadataFile, JSON.stringify(data, null, 2), "utf-8");
+      console.log(`Saved ${songs2.length} songs to metadata file`);
+    } catch (error) {
+      console.error("Failed to save metadata:", error);
     }
   }
   async getAllSongs() {
@@ -39,6 +77,7 @@ var MemStorage = class {
       duration: insertSong.duration || 0
     };
     this.songs.set(id, song);
+    await this.saveMetadata();
     return song;
   }
   async renameSong(input) {
@@ -50,21 +89,26 @@ var MemStorage = class {
       artist: input.artist || song.artist
     };
     this.songs.set(input.id, updatedSong);
+    await this.saveMetadata();
     return updatedSong;
   }
   async deleteSong(input) {
     const song = this.songs.get(input.id);
     if (!song) return false;
     try {
-      await fs.unlink(song.path);
-      return this.songs.delete(input.id);
+      if (existsSync(song.path)) {
+        await fs.unlink(song.path);
+      }
+      const result = this.songs.delete(input.id);
+      await this.saveMetadata();
+      return result;
     } catch (error) {
       console.error(`Failed to delete file ${song.path}:`, error);
       return false;
     }
   }
 };
-var storage = new MemStorage();
+var storage = new FileStorage();
 
 // server/routes.ts
 import multer from "multer";
