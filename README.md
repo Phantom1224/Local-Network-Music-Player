@@ -18,7 +18,7 @@ This project aims to bridge the gap of music streaming and a thriving community 
 
 ## Technologies Used
 * React with Typescript
-* Express.js backed
+* Express.js backend
 * Tailwind CSS for styling
 * Vite for frontend build
 
@@ -55,4 +55,4 @@ theme.json
 tsconfig.json
 vite.config.ts
 ```
->>>>>>> experimental
+>>>>>>> master
