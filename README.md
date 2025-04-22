@@ -9,6 +9,7 @@ This project aims to bridge the gap of music streaming and a thriving community 
 - Upload music from your device and store on the web's server
 - Edit the song's name and artist metadata
 - Delete any song
+- Supported audio formats: MP3, M4A, FLAC, WAV
 
 ## Getting started
 1. Clone the repository
